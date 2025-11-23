@@ -1,0 +1,24 @@
+# Core dependencies for RAG system
+langchain==0.1.0
+langchain-openai==0.0.2
+openai==1.6.1
+faiss-cpu==1.8.0
+tiktoken==0.5.2
+
+# LangGraph for agent orchestration
+langgraph==0.0.20
+
+# LangSmith for tracing and monitoring
+langsmith==0.0.77
+
+# Jupyter and notebook support
+jupyter==1.0.0
+ipykernel==6.27.1
+nbformat==5.9.2
+nbconvert==7.14.0
+
+# Utilities
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3
