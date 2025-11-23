@@ -184,7 +184,8 @@ def test_langsmith_without_api_key():
     
     # Should generate URL
     url = get_trace_url("test-run-id")
-    assert "smith.langchain.com" in url
+    # Verify URL starts with expected base URL (more secure than substring check)
+    assert url.startswith("https://smith.langchain.com/")
 
 
 if __name__ == "__main__":
