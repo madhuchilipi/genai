@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, copilot/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test imports without API keys
+      run: |
+        python -c "import src; print('✅ src package imports successfully')"
+        python -c "from src import data_prep; print('✅ data_prep imports successfully')"
+        python -c "from src import rag_baseline; print('✅ rag_baseline imports successfully')"
+        python -c "from src import memory; print('✅ memory imports successfully')"
+        python -c "from src import guardrails; print('✅ guardrails imports successfully')"
+        python -c "from src import agent_rag; print('✅ agent_rag imports successfully')"
+        python -c "from src import graph_rag; print('✅ graph_rag imports successfully')"
+        python -c "from src import responsible_ai; print('✅ responsible_ai imports successfully')"
+        python -c "from src import langsmith_integration; print('✅ langsmith_integration imports successfully')"
+    
+    - name: Run pytest
+      run: |
+        pytest tests/ -v --tb=short
+    
+    - name: Test module execution
+      run: |
+        python src/data_prep.py
+        python src/rag_baseline.py
+        python src/memory.py
+        python src/guardrails.py
+        python src/agent_rag.py
+        python src/graph_rag.py
+        python src/responsible_ai.py
+        python src/langsmith_integration.py
+    
+    - name: Check notebook format
+      run: |
+        # Verify notebooks are valid JSON
+        python -c "import json; [json.load(open(f'notebooks/{nb}')) for nb in ['01_data_preparation.ipynb', '02_rag_baseline.ipynb', '03_memory_integration.ipynb', '04_guardrails.ipynb', '05_agentic_rag.ipynb', '06_graph_rag.ipynb', '07_responsible_ai_and_tests.ipynb']]; print('✅ All notebooks are valid JSON')"
+    
+    - name: Verify project structure
+      run: |
+        test -f README.md && echo "✅ README.md exists"
+        test -f requirements.txt && echo "✅ requirements.txt exists"
+        test -f .gitignore && echo "✅ .gitignore exists"
+        test -d src && echo "✅ src/ directory exists"
+        test -d notebooks && echo "✅ notebooks/ directory exists"
+        test -d tests && echo "✅ tests/ directory exists"
+        test -d docs && echo "✅ docs/ directory exists"
+        test -d assets && echo "✅ assets/ directory exists"
+        test -f docs/RESPONSIBLE_AI.md && echo "✅ RESPONSIBLE_AI.md exists"
+        test -f assets/diagram_placeholder.png && echo "✅ diagram_placeholder.png exists"
+    
+    - name: Summary
+      run: |
+        echo "================================"
+        echo "✅ All CI checks passed!"
+        echo "================================"
+        echo "- Python imports work without API keys"
+        echo "- All tests pass"
+        echo "- Modules execute successfully"
+        echo "- Notebooks are valid"
+        echo "- Project structure is complete"
