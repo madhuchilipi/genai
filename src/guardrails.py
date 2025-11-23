@@ -6,7 +6,7 @@ Provides utilities for detecting unsafe prompts and rewriting them safely.
 """
 
 import re
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 
 
 # Patterns for detecting adversarial or unsafe prompts
@@ -174,7 +174,7 @@ def safe_rewrite(prompt: str) -> str:
     return clean_prompt
 
 
-def validate_input(prompt: str, max_length: int = 2000) -> Dict[str, any]:
+def validate_input(prompt: str, max_length: int = 2000) -> Dict[str, Any]:
     """
     Comprehensive input validation and safety check.
     
@@ -227,7 +227,7 @@ def validate_input(prompt: str, max_length: int = 2000) -> Dict[str, any]:
     return result
 
 
-def validate_output(response: str, retrieved_docs: List[Dict]) -> Dict[str, any]:
+def validate_output(response: str, retrieved_docs: List[Dict]) -> Dict[str, Any]:
     """
     Validate LLM output for safety and quality.
     

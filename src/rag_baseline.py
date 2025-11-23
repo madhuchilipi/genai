@@ -9,7 +9,7 @@ Simple retrieval-augmented generation pipeline that:
 """
 
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import warnings
 
 
@@ -183,7 +183,7 @@ Answer (with citations):"""
 
 These rights empower individuals to have control over their personal data. [Citations: GDPR Articles 15, 17, 20]"""
     
-    def query(self, question: str) -> Dict[str, any]:
+    def query(self, question: str) -> Dict[str, Any]:
         """
         Complete RAG pipeline: retrieve, format, generate.
         
