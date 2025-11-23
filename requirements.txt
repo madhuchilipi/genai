@@ -1,0 +1,22 @@
+# Core LangChain and AI dependencies
+langchain==0.1.0
+openai==1.6.1
+faiss-cpu==1.7.4
+langgraph==0.0.20
+langsmith-sdk==0.0.69
+tiktoken==0.5.2
+
+# Jupyter notebooks
+jupyter==1.0.0
+ipykernel==6.28.0
+nbformat==5.9.2
+nbconvert==7.14.2
+
+# Configuration and utilities
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3
+
+# HTTP requests
+requests==2.31.0

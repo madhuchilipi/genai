@@ -1,0 +1,164 @@
+name: CI - Project 3 RAG System
+
+on:
+  push:
+    branches: [ main, feat/project3-scaffold ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Verify imports (smoke test)
+      run: |
+        python -c "import src; print('✓ src package imported successfully')"
+        python -c "from src.data_prep import DataPreprocessor; print('✓ data_prep imported')"
+        python -c "from src.rag_baseline import RAGSystem; print('✓ rag_baseline imported')"
+        python -c "from src.memory import MemoryManager; print('✓ memory imported')"
+        python -c "from src.guardrails import GuardrailsManager; print('✓ guardrails imported')"
+        python -c "from src.agent_rag import AgentRAG; print('✓ agent_rag imported')"
+        python -c "from src.graph_rag import GraphRAG; print('✓ graph_rag imported')"
+        python -c "from src.responsible_ai import ResponsibleAI; print('✓ responsible_ai imported')"
+        python -c "from src.langsmith_integration import LangSmithTracer; print('✓ langsmith_integration imported')"
+    
+    - name: Run pytest
+      run: |
+        pytest tests/ -v --tb=short
+      env:
+        # No API keys needed - tests run in dry-run mode
+        PYTHONPATH: ${{ github.workspace }}
+    
+    - name: Test dry-run functionality
+      run: |
+        python -c "
+        from src.rag_baseline import RAGSystem
+        from src.data_prep import DataPreprocessor
+        
+        # Test without API keys
+        preprocessor = DataPreprocessor()
+        chunks = preprocessor.prepare_for_rag('test')
+        
+        rag = RAGSystem()
+        rag.index_documents(chunks)
+        response = rag.query('What is GDPR?')
+        
+        print('✓ RAG system works in dry-run mode')
+        print(f'Response preview: {response[:100]}...')
+        "
+    
+    - name: Test all modules instantiation
+      run: |
+        python -c "
+        from src.data_prep import DataPreprocessor
+        from src.rag_baseline import RAGSystem
+        from src.memory import MemoryManager
+        from src.guardrails import GuardrailsManager
+        from src.agent_rag import AgentRAG
+        from src.graph_rag import GraphRAG
+        from src.responsible_ai import ResponsibleAI
+        from src.langsmith_integration import LangSmithTracer
+        
+        # Instantiate all classes
+        DataPreprocessor()
+        RAGSystem()
+        MemoryManager()
+        GuardrailsManager()
+        AgentRAG()
+        GraphRAG()
+        ResponsibleAI()
+        LangSmithTracer()
+        
+        print('✓ All modules instantiated successfully without API keys')
+        "
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Check Python syntax
+      run: |
+        python -m py_compile src/*.py
+        python -m py_compile tests/*.py
+        echo "✓ All Python files have valid syntax"
+    
+    - name: Check for TODO comments (informational)
+      run: |
+        echo "TODOs found in codebase (for future implementation):"
+        grep -r "TODO" src/ tests/ || echo "No TODOs found"
+      continue-on-error: true
+
+  structure-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Verify project structure
+      run: |
+        echo "Checking project structure..."
+        
+        # Check top-level files
+        test -f README.md && echo "✓ README.md exists" || exit 1
+        test -f requirements.txt && echo "✓ requirements.txt exists" || exit 1
+        test -f .gitignore && echo "✓ .gitignore exists" || exit 1
+        
+        # Check src/ directory
+        test -d src && echo "✓ src/ directory exists" || exit 1
+        test -f src/__init__.py && echo "✓ src/__init__.py exists" || exit 1
+        test -f src/data_prep.py && echo "✓ src/data_prep.py exists" || exit 1
+        test -f src/rag_baseline.py && echo "✓ src/rag_baseline.py exists" || exit 1
+        test -f src/memory.py && echo "✓ src/memory.py exists" || exit 1
+        test -f src/guardrails.py && echo "✓ src/guardrails.py exists" || exit 1
+        test -f src/agent_rag.py && echo "✓ src/agent_rag.py exists" || exit 1
+        test -f src/graph_rag.py && echo "✓ src/graph_rag.py exists" || exit 1
+        test -f src/responsible_ai.py && echo "✓ src/responsible_ai.py exists" || exit 1
+        test -f src/langsmith_integration.py && echo "✓ src/langsmith_integration.py exists" || exit 1
+        
+        # Check tests/ directory
+        test -d tests && echo "✓ tests/ directory exists" || exit 1
+        test -f tests/test_imports.py && echo "✓ tests/test_imports.py exists" || exit 1
+        
+        # Check notebooks/ directory
+        test -d notebooks && echo "✓ notebooks/ directory exists" || exit 1
+        
+        # Check docs/ and assets/ directories
+        test -d docs && echo "✓ docs/ directory exists" || exit 1
+        test -d assets && echo "✓ assets/ directory exists" || exit 1
+        
+        echo "✓ All required files and directories present"
